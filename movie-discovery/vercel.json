@@ -1,5 +1,8 @@
 {
   "framework": "angular",
   "buildCommand": "ng build",
-  "outputDirectory": "dist/movie-discovery/browser"
+  "outputDirectory": "dist/movie-discovery/browser",
+  "rewrites": [
+    { "source": "/api/tmdb/:path*", "destination": "/api/proxy?path=:path*" }
+  ]
 }
