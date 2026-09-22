@@ -15,6 +15,11 @@ module.exports = async function handler(req, res) {
   const segments = Array.isArray(path) ? path : [path].filter(Boolean);
   const targetUrl = new URL(`${TMDB_BASE_URL}/${segments.join('/')}`);
 
+  if (query.__debug === '1') {
+    res.status(200).json({ reqUrl: req.url, reqQuery: req.query, segments, targetUrl: targetUrl.toString() });
+    return;
+  }
+
   for (const [key, value] of Object.entries(query)) {
     if (Array.isArray(value)) {
       value.forEach((v) => targetUrl.searchParams.append(key, v));
