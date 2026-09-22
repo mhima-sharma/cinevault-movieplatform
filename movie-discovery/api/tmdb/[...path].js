@@ -11,21 +11,12 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { path, ...query } = req.query;
-  const segments = Array.isArray(path) ? path : [path].filter(Boolean);
-  const targetUrl = new URL(`${TMDB_BASE_URL}/${segments.join('/')}`);
+  const requestUrl = new URL(req.url, 'http://localhost');
+  const forwardedPath = requestUrl.pathname.replace(/^\/api\/tmdb/, '');
+  const targetUrl = new URL(TMDB_BASE_URL + forwardedPath);
 
-  if (query.__debug === '1') {
-    res.status(200).json({ reqUrl: req.url, reqQuery: req.query, segments, targetUrl: targetUrl.toString() });
-    return;
-  }
-
-  for (const [key, value] of Object.entries(query)) {
-    if (Array.isArray(value)) {
-      value.forEach((v) => targetUrl.searchParams.append(key, v));
-    } else if (value !== undefined) {
-      targetUrl.searchParams.set(key, value);
-    }
+  for (const [key, value] of requestUrl.searchParams) {
+    targetUrl.searchParams.append(key, value);
   }
   targetUrl.searchParams.set('api_key', TMDB_API_KEY);
 
