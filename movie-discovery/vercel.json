@@ -1,0 +1,7 @@
+{
+  "buildCommand": "ng build",
+  "outputDirectory": "dist/movie-discovery/browser",
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
