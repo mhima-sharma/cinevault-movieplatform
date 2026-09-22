@@ -2,6 +2,7 @@
   "buildCommand": "ng build",
   "outputDirectory": "dist/movie-discovery/browser",
   "rewrites": [
+    { "source": "/api/:match*", "destination": "/api/:match*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
