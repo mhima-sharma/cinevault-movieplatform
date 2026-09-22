@@ -1,0 +1,131 @@
+@if (details.loading() && !details.data()) {
+  <app-details-skeleton />
+} @else if (details.error()) {
+  <app-error-message title="Movie not found" message="We couldn't load this movie. It may not exist or TMDB is unreachable." (retry)="details.reload()" />
+} @else if (details.data(); as movie) {
+  <div class="animate-fade-in">
+    <!-- Backdrop -->
+    <section class="relative h-[45vh] md:h-[65vh] w-full overflow-hidden">
+      <img [src]="movie.backdrop_path | tmdbImage: 'backdrop' : 'original'" [alt]="movie.title" class="absolute inset-0 h-full w-full object-cover" />
+      <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)]/60 to-transparent"></div>
+
+      <a routerLink="/movies" class="absolute left-4 top-4 md:left-8 md:top-6 z-10 inline-flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70">
+        <svg lucideArrowLeft class="h-4 w-4"></svg>
+        Back
+      </a>
+    </section>
+
+    <!-- Content -->
+    <div class="mx-auto max-w-[1600px] px-4 md:px-8 -mt-24 md:-mt-40 relative z-10 pb-16">
+      <div class="flex flex-col md:flex-row gap-6 md:gap-8">
+        <img
+          [src]="movie.poster_path | tmdbImage: 'poster' : 'w500'"
+          [alt]="movie.title"
+          class="w-[160px] md:w-[220px] shrink-0 rounded-xl shadow-2xl ring-1 ring-white/10"
+        />
+
+        <div class="flex-1 pt-2 md:pt-16">
+          <h1 class="text-2xl md:text-4xl font-extrabold text-white">{{ movie.title }}</h1>
+          @if (movie.tagline) {
+            <p class="mt-1 italic text-[var(--color-accent-2)]">{{ movie.tagline }}</p>
+          }
+
+          <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-300">
+            <app-rating [voteAverage]="movie.vote_average" [showOutOf]="true" size="lg" />
+            <span class="inline-flex items-center gap-1.5"><svg lucideCalendar class="h-4 w-4"></svg>{{ movie.release_date | releaseYear }}</span>
+            @if (movie.runtime) {
+              <span class="inline-flex items-center gap-1.5"><svg lucideClock class="h-4 w-4"></svg>{{ movie.runtime | runtime }}</span>
+            }
+          </div>
+
+          @if (movie.genres.length) {
+            <div class="mt-4 flex flex-wrap gap-2">
+              @for (genre of movie.genres; track genre.id) {
+                <span class="rounded-full bg-[var(--color-surface)] border border-white/10 px-3 py-1 text-xs font-medium text-gray-300">
+                  {{ genre.name }}
+                </span>
+              }
+            </div>
+          }
+
+          <p class="mt-5 max-w-3xl text-sm md:text-base leading-relaxed text-gray-300">{{ movie.overview || 'No overview available.' }}</p>
+
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              (click)="playTrailer()"
+              class="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)] px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-105 hover:bg-[var(--color-accent-hover)]"
+            >
+              <svg lucidePlay class="h-4 w-4"></svg>
+              Watch Trailer
+            </button>
+            <button
+              type="button"
+              (click)="toggleFavorite()"
+              [attr.aria-pressed]="isFavorite()"
+              class="inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-colors"
+              [class]="isFavorite() ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]' : 'border-white/20 text-white hover:bg-white/10'"
+            >
+              <svg lucideHeart class="h-4 w-4" [class.fill-current]="isFavorite()"></svg>
+              {{ isFavorite() ? 'Favorited' : 'Add to Favorites' }}
+            </button>
+            <button
+              type="button"
+              (click)="toggleWatchlist()"
+              [attr.aria-pressed]="isInWatchlist()"
+              class="inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-colors"
+              [class]="isInWatchlist() ? 'border-[var(--color-accent-2)] bg-[var(--color-accent-2)]/10 text-[var(--color-accent-2)]' : 'border-white/20 text-white hover:bg-white/10'"
+            >
+              <svg lucideBookmark class="h-4 w-4" [class.fill-current]="isInWatchlist()"></svg>
+              {{ isInWatchlist() ? 'In Watchlist' : 'Add to Watchlist' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Extra details -->
+      <div class="mt-12 grid gap-6 md:grid-cols-4">
+        <div class="rounded-xl bg-[var(--color-surface)] p-4">
+          <p class="text-xs uppercase tracking-wide text-gray-500">Status</p>
+          <p class="mt-1 font-semibold text-white">{{ movie.status || 'N/A' }}</p>
+        </div>
+        <div class="rounded-xl bg-[var(--color-surface)] p-4">
+          <p class="text-xs uppercase tracking-wide text-gray-500">Budget</p>
+          <p class="mt-1 font-semibold text-white">{{ formatCurrency(movie.budget) }}</p>
+        </div>
+        <div class="rounded-xl bg-[var(--color-surface)] p-4">
+          <p class="text-xs uppercase tracking-wide text-gray-500">Revenue</p>
+          <p class="mt-1 font-semibold text-white">{{ formatCurrency(movie.revenue) }}</p>
+        </div>
+        <div class="rounded-xl bg-[var(--color-surface)] p-4">
+          <p class="text-xs uppercase tracking-wide text-gray-500">Original Language</p>
+          <p class="mt-1 font-semibold text-white uppercase">{{ movie.original_language }}</p>
+        </div>
+      </div>
+
+      @if (movie.production_companies.length) {
+        <div class="mt-8">
+          <h2 class="text-sm font-semibold text-gray-400 mb-3">Production Companies</h2>
+          <div class="flex flex-wrap gap-x-6 gap-y-3">
+            @for (company of movie.production_companies; track company.id) {
+              <span class="text-sm text-gray-300">{{ company.name }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Cast -->
+      <div class="mt-12">
+        <app-cast-list [cast]="credits.data()?.cast ?? []" />
+      </div>
+    </div>
+
+    <!-- Similar / Recommended -->
+    <div class="space-y-10 pb-16">
+      <app-movie-row title="Similar Movies" [items]="similarCards()" [loading]="similar.loading()" />
+      <app-movie-row title="Recommended For You" [items]="recommendedCards()" [loading]="recommended.loading()" />
+    </div>
+  </div>
+
+  <app-video-modal [videoKey]="activeVideoKey()" [title]="movie.title" (close)="activeVideoKey.set(null)" />
+}

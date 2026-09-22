@@ -1,0 +1,26 @@
+<div class="mx-auto max-w-[1600px] px-4 md:px-8 py-8">
+  <a routerLink="/genres" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white">
+    <svg lucideArrowLeft class="h-4 w-4"></svg>
+    All Genres
+  </a>
+
+  <h1 class="mt-3 text-2xl md:text-3xl font-extrabold text-white">{{ resolvedName() }} Movies</h1>
+
+  <div class="mt-8">
+    @if (movies.error()) {
+      <app-error-message (retry)="movies.reload()" />
+    } @else if (movies.loading()) {
+      <app-movie-grid-skeleton [count]="18" />
+    } @else if (cards().length === 0) {
+      <app-empty-state title="No movies found" [message]="'No movies found for ' + resolvedName() + '.'" />
+    } @else {
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        @for (movie of cards(); track movie.id) {
+          <app-movie-card [item]="movie" mediaType="movie" />
+        }
+      </div>
+
+      <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="onPageChange($event)" />
+    }
+  </div>
+</div>

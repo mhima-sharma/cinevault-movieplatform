@@ -1,0 +1,81 @@
+@if (trending.error() && !hero()) {
+  <app-error-message
+    title="Couldn't load CineVault"
+    message="We ran into a problem reaching TMDB. Check your API key and connection."
+    (retry)="trending.reload()"
+  />
+} @else {
+  <!-- Hero Section -->
+  <section class="relative h-[60vh] md:h-[85vh] w-full overflow-hidden">
+    @if (!hero()) {
+      <div class="skeleton absolute inset-0"></div>
+    } @else {
+      <img
+        [src]="hero()!.backdrop_path | tmdbImage: 'backdrop' : 'original'"
+        [alt]="hero()!.title"
+        class="absolute inset-0 h-full w-full object-cover animate-fade-in"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)]/40 to-transparent"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-[var(--color-bg)]/90 via-[var(--color-bg)]/10 to-transparent"></div>
+
+      <div class="relative z-10 flex h-full max-w-[1600px] mx-auto items-end md:items-center px-4 md:px-8 pb-10 md:pb-0">
+        <div class="max-w-xl animate-fade-in-up">
+          @if (heroGenres().length) {
+            <div class="mb-3 flex flex-wrap gap-2">
+              @for (genre of heroGenres(); track genre) {
+                <span class="rounded-full border border-white/20 bg-black/30 px-3 py-1 text-xs font-medium text-gray-200 backdrop-blur-sm">
+                  {{ genre }}
+                </span>
+              }
+            </div>
+          }
+
+          <h1 class="text-3xl md:text-5xl font-extrabold text-white drop-shadow-lg leading-tight">
+            {{ hero()!.title }}
+          </h1>
+
+          @if (heroDetails()?.tagline) {
+            <p class="mt-2 text-sm md:text-base italic text-[var(--color-accent-2)]">{{ heroDetails()!.tagline }}</p>
+          }
+
+          <div class="mt-4 flex items-center gap-4 text-sm text-gray-300">
+            <app-rating [voteAverage]="hero()!.vote_average" [showOutOf]="true" />
+            <span>{{ hero()!.release_date | releaseYear }}</span>
+          </div>
+
+          <p class="mt-4 hidden md:block text-sm text-gray-300 line-clamp-3">
+            {{ hero()!.overview }}
+          </p>
+
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <a
+              [routerLink]="['/movies', hero()!.id]"
+              class="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)] px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-105 hover:bg-[var(--color-accent-hover)]"
+            >
+              <svg lucideInfo class="h-4 w-4"></svg>
+              View Details
+            </a>
+            <button
+              type="button"
+              (click)="addHeroToWatchlist()"
+              class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+            >
+              <svg lucidePlus class="h-4 w-4"></svg>
+              {{ isInWatchlist(hero()!.id) ? 'In Watchlist' : 'Add to Watchlist' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- Movie Sections -->
+  <div class="space-y-10 py-10 md:py-14">
+    <app-movie-row title="Trending Today" [items]="trendingCards()" [loading]="trending.loading()" viewAllLink="/trending" />
+    <app-movie-row title="Popular Movies" [items]="popularCards()" [loading]="popular.loading()" viewAllLink="/movies" />
+    <app-movie-row title="Now Playing" [items]="nowPlayingCards()" [loading]="nowPlaying.loading()" viewAllLink="/movies" />
+    <app-movie-row title="Upcoming Movies" [items]="upcomingCards()" [loading]="upcoming.loading()" viewAllLink="/movies" />
+    <app-movie-row title="Top Rated" [items]="topRatedCards()" [loading]="topRated.loading()" viewAllLink="/movies" />
+    <app-movie-row title="Popular TV Shows" [items]="popularTvCards()" [loading]="popularTv.loading()" mediaType="tv" viewAllLink="/tv" />
+  </div>
+}
